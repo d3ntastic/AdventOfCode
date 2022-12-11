@@ -44,6 +44,7 @@ class Directory:
 def get_directory_tree(input):
     directory_tree = Directory('/', None)
     current_directory = directory_tree
+    list_of_dirs = []
     for line in input:
         if (line == '$ cd /'):
             current_directory = directory_tree
@@ -59,12 +60,13 @@ def get_directory_tree(input):
             continue
         elif (line.startswith('dir')):
             name = line.split(' ')[1]
+            list_of_dirs.append(name)
             directory = Directory(name, current_directory)
             current_directory.add_child(directory)
         else:
             file = int(line.split(' ')[0])
             current_directory.add_file(file)
-    return directory_tree
+    return directory_tree, list_of_dirs
 
 def read_input(filename):
     fileDir = os.path.dirname(os.path.realpath(__file__))
@@ -76,18 +78,30 @@ def read_input(filename):
 def get_all_sizes_recursive(directory):
     sizes = {}
     for child in directory.get_children():
-        sizes[child.get_name()] = child.get_size()
+        size = child.get_size()
+        sizes[child.get_name() + '-' + str(size)] = size
         sizes.update(get_all_sizes_recursive(child))
     return sizes
 
 def part_one():
-    input = read_input('./input.txt')
+    input, list_of_dirs = read_input('./input.txt')
     directory_sizes = get_all_sizes_recursive(input)
     return sum([element for element in directory_sizes.values() if element <= 100000])
 
 def part_two():
-    input = read_input('./input.txt')
-    return "Not implemented"
+    input, list_of_dirs = read_input('./input.txt')
+    directory_sizes = get_all_sizes_recursive(input)
+    current_input_size = input.get_size()
+    current_free_space = 70000000 - current_input_size
+    needed_space = 30000000 - current_free_space
+    closest_result = 3000000
+    closest_dir = ''
+    sizes = list(directory_sizes.values())
+    sizes.sort()
+    for current_size in sizes:
+        if (current_size > needed_space):
+            return current_size
+    return closest_dir
 
 def main():
     print(part_one())
